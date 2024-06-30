@@ -1,0 +1,108 @@
+# YOLOv9
+
+# parameters
+nc: 80  # number of classes
+depth_multiple: 1.0  # model depth multiple
+width_multiple: 1.0  # layer channel multiple
+#activation: nn.LeakyReLU(0.1)
+#activation: nn.ReLU()
+
+# anchors
+anchors: 3
+
+# gelan backbone
+backbone:
+  [
+   # conv down
+   [-1, 1, Conv, [64, 3, 2]],  # 0-P1/2
+
+   # conv down
+   [-1, 1, Conv, [128, 3, 2]],  # 1-P2/4
+
+   # elan-1 block
+   [-1, 3, DW_C3, [256, 0.5]],  # 2
+
+   # avg-conv down
+   [-1, 1, HWD, [256]],  # 3-P3/8
+
+   # elan-2 block
+   [-1, 3, DW_C3, [512, 0.5]],  # 4
+
+   # avg-conv down
+   [-1, 1, HWD, [512]],  # 5-P4/16
+
+   # elan-2 block
+   [-1, 3, DW_C3, [512, 0.5]],  # 6
+
+   # avg-conv down
+   [-1, 1, HWD, [512]],  # 7-P5/32
+
+   # elan-2 block
+   [-1, 3, DW_C3, [512, 0.5]],  # 8
+  ]
+
+# gelan head
+head:
+  [
+   # elan-spp block
+   [-1, 1, SPPELAN, [512, 256]],  # 9
+
+   # up-concat merge
+   [-1, 1, DySample, [2, 'lp']],
+   [6, 1, Conv, [512, 1, 1]],
+   [[-1, -2], 1, Bi_FPN, [1]],
+   [[-1, 6], 1, Concat, [1]],  # cat backbone P4
+
+   # elan-2 block
+   [-1, 3, DW_C3, [512, 0.5]],  # 14
+
+   # up-concat merge
+   [-1, 1, DySample, [2, 'lp']],
+   [9, 2, DySample, [2, 'lp']],
+   [[-1, -2], 1, Bi_FPN, [1]],
+   [[-1, 4], 1, Concat, [1]],  # cat backbone P3
+
+   # elan-2 block
+   [-1, 3, DW_C3, [256, 0.5]],  # 19
+
+   # up-concat merge
+   [-1, 1, DySample, [2, 'lp']],
+   [14, 1, Conv, [256, 1, 1]],
+   [-1, 2, DySample, [2, 'lp']],
+   [[-1, -3], 1, Bi_FPN, [1]],
+   [[-1, 2], 1, Concat, [1]],  # cat backbone P3
+
+   # elan-2 block
+   [-1, 3, DW_C3, [128, 0.5]],  # 25
+
+   # avg-conv-down merge
+   [-1, 1, ADown, [256]],
+   [19, 1, Conv, [256, 1, 1]],
+   [[-1, -2], 1, Bi_FPN, [1]],
+   [[-1, 19], 1, Concat, [1]],  # P3
+
+   [-1, 3, DW_C3, [256, 0.5]],  # 30
+
+   # avg-conv-down merge
+   [-1, 1, ADown, [256]],
+   [25, 1, Conv, [256, 1, 1]],
+   [-1, 2, ADown, [256]],
+   [[-1, -3], 1, Bi_FPN, [1]],
+   [[-1, 14], 1, Concat, [1]],  # cat head P4
+
+   # elan-2 block
+   [-1, 3, DW_C3, [512, 0.5]],  # 36
+
+   # avg-conv-down merge
+   [-1, 1, ADown, [512]],
+   [30, 1, Conv, [512, 1, 1]],
+   [-1, 2, ADown, [512]],
+   [[-1, -3], 1, Bi_FPN, [1]],
+   [[-1, 9], 1, Concat, [1]],  # cat head P5
+
+   # elan-2 block
+   [-1, 3, DW_C3, [512, 0.5]],  # 42
+
+   # detect
+   [[25, 30, 36, 42], 1, DDetect, [nc]],  # DDetect(P3, P4, P5)
+  ]
