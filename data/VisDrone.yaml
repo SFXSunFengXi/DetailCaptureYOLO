@@ -1,0 +1,13 @@
+# COCO 2017 dataset http://cocodataset.org
+
+# download command/URL (optional)
+download: bash ./scripts/get_coco.sh
+
+train: /home/dell/sfx/Dataset/VisDrone/VisDrone2019-DET-train/images  # train images (relative to 'path')  6471 images
+val: /home/dell/sfx/Dataset/VisDrone/VisDrone2019-DET-val/images
+#val: C:/nanodet/coco/VisDrone2019-DET-val/images  # val images (relative to 'path')  548 images
+test: /home/dell/sfx/Dataset/VisDrone/VisDrone2019-DET-val/images   # test images (optional)  1610 images
+
+# Classes
+nc: 10  # number of classes
+names: [ 'pedestrian', 'people', 'bicycle', 'car', 'van', 'truck', 'tricycle', 'awning-tricycle', 'bus', 'motor' ]
